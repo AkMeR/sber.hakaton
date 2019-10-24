@@ -2,6 +2,7 @@ package com.sbt.rnd.meetup2017.transport.impl.server;
 
 import com.sbt.rnd.meetup2017.transport.api.Api;
 import com.sbt.rnd.meetup2017.transport.api.RequestApiImpl;
+import com.sbt.rnd.meetup2017.transport.impl.server.state.ServerState;
 import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +20,7 @@ import org.springframework.util.ClassUtils;
 import java.lang.reflect.Proxy;
 import java.util.*;
 
-public class SpringServerApi implements Server, ApplicationContextAware, InitializingBean, DisposableBean {
+public class SpringServerApi implements Server, ApplicationContextAware, InitializingBean, DisposableBean{
     private static final Logger logger = LoggerFactory.getLogger(SpringServerApi.class);
     private Server server;
     protected ApplicationContext applicationContext;
@@ -27,13 +28,13 @@ public class SpringServerApi implements Server, ApplicationContextAware, Initial
     private final String baseApiPackage;
     private final String baseServicesPackage;
     private boolean autoStart;
+    private ServerState serverState;
 
     public SpringServerApi(TransportObjectFactory objectFactory, String baseApiPackage, String baseServicesPackage) {
         this.autoStart = true;
         this.objectFactory = objectFactory;
         this.baseApiPackage = baseApiPackage;
         this.baseServicesPackage = baseServicesPackage;
-
     }
 
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -43,7 +44,7 @@ public class SpringServerApi implements Server, ApplicationContextAware, Initial
     public void afterPropertiesSet() throws Exception {
 
         this.server = this.objectFactory.createApiServer(this.baseApiPackage, this.getApiServices(this.baseApiPackage, this.baseServicesPackage));
-
+        serverState = this.server.getServerState();
 
         if (this.isAutoStart()) {
             logger.debug("Auto start API server...");
@@ -149,6 +150,11 @@ public class SpringServerApi implements Server, ApplicationContextAware, Initial
 
     public void stopServer() {
         this.server.stopServer();
+    }
+
+    @Override
+    public ServerState getServerState() {
+        return serverState;
     }
 
     public static class ApiServiceBean {

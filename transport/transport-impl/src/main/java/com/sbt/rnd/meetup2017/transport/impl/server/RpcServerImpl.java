@@ -5,6 +5,8 @@ import com.sbt.rnd.meetup2017.transport.api.RequestTimeoutException;
 import com.sbt.rnd.meetup2017.transport.impl.MessageHandler;
 import com.sbt.rnd.meetup2017.transport.impl.MethodInvocation;
 import com.sbt.rnd.meetup2017.transport.impl.TransportListener;
+import com.sbt.rnd.meetup2017.transport.impl.server.state.ServerState;
+import com.sbt.rnd.meetup2017.transport.impl.server.state.ServerStateImpl;
 import com.sbt.rnd.meetup2017.transport.message.Message;
 import com.sbt.rnd.meetup2017.transport.message.MessageProperties;
 import com.sbt.rnd.meetup2017.transport.message.Serializer;
@@ -20,8 +22,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
-public class RpcServerImpl extends RemoteInvocationBasedExporter implements MessageHandler<ConsumerRecord<String, byte[]>>, AutoCloseable, Server {
+public class RpcServerImpl extends RemoteInvocationBasedExporter
+        implements MessageHandler<ConsumerRecord<String, byte[]>>, AutoCloseable, Server {
 
     private static final Logger LOGGER = LogManager.getLogger(RpcServerImpl.class.getName());
 
@@ -32,12 +36,15 @@ public class RpcServerImpl extends RemoteInvocationBasedExporter implements Mess
     private final String nodeId;
     private final String moduleId;
     private TransportProducer producer;
+    private ServerState serverState;
+    private AtomicInteger freeThreadCount = new AtomicInteger(numConsumers);
 
     public RpcServerImpl(Class<?> apiClass, String nodeId, String moduleId) {
         this.apiClass = apiClass;
         this.nodeId = nodeId;
         this.moduleId = moduleId;
         this.producer = new TransportProducerKafka(groupId, bootstrapServer);
+        this.serverState = new ServerStateImpl(apiClass.getName(), this);
     }
 
     private Message createReplyMessage(MessageProperties messageProperties, Object result) {
@@ -127,26 +134,27 @@ public class RpcServerImpl extends RemoteInvocationBasedExporter implements Mess
 
     @Override
     public <V> V handle(ConsumerRecord<String, byte[]> record) {
-        if (record.value() == null) {
-            LOGGER.error("Received message value is null");
-            return null;
-        }
-        Message message = null;
+        System.out.println("Incr "+freeThreadCount.decrementAndGet());
         try {
-            message = Serializer.deserialize(record.value());
-        } catch (ClassCastException ex) {
-            LOGGER.error("ClassCastException {}", ex.getMessage());
-            reply(message.getProperties(), new RequestRuntimeException(ex.getMessage(),ex.getCause()));
-            return null;
-        }
+            if (record.value() == null) {
+                LOGGER.error("Received message value is null");
+                return null;
+            }
+            Message message = null;
+            try {
+                message = Serializer.deserialize(record.value());
+            } catch (ClassCastException ex) {
+                LOGGER.error("ClassCastException {}", ex.getMessage());
+                reply(message.getProperties(), new RequestRuntimeException(ex.getMessage(), ex.getCause()));
+                return null;
+            }
 
-        try {
-            invoke(message);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            LOGGER.error("Exception {} {}", e.getMessage(),e.getCause());
-            reply(message.getProperties(), new RequestRuntimeException(e.getMessage(),e.getCause()));
+            try {
+                invoke(message);
+            } catch (Exception e) {
+                e.printStackTrace();
+                LOGGER.error("Exception {} {}", e.getMessage(), e.getCause());
+                reply(message.getProperties(), new RequestRuntimeException(e.getMessage(), e.getCause()));
        /* } catch (NoSuchMethodException e) {
             e.printStackTrace();
             LOGGER.error("NoSuchMethodException {}", e.getMessage());
@@ -163,8 +171,11 @@ public class RpcServerImpl extends RemoteInvocationBasedExporter implements Mess
             LOGGER.error("RuntimeException {}", e.getMessage());
             e.printStackTrace();
             throw new RequestRuntimeException(e.getMessage(), e.getCause());*/
+            }
         }
-
+        finally {
+            System.out.println("Decr "+freeThreadCount.incrementAndGet());
+        }
         return null;
     }
 
@@ -207,4 +218,12 @@ public class RpcServerImpl extends RemoteInvocationBasedExporter implements Mess
         }
     }
 
+    @Override
+    public ServerState getServerState() {
+        return serverState;
+    }
+
+    public AtomicInteger getFreeThreadCount() {
+        return freeThreadCount;
+    }
 }

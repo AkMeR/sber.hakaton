@@ -40,4 +40,22 @@
         <constructor-arg name="baseServicesPackage" value="com.sbt.rnd.meetup2017.transport.api.impl"/>
     </bean>
 
+    <bean id="statisticBean" class="com.sbt.rnd.meetup2017.transport.impl.jmx.Statistic">
+        <property name="servers">
+            <list value-type="com.sbt.rnd.meetup2017.transport.impl.server.Server">
+                <ref bean="clientApiServer"/>
+                <ref bean="accountApiServer"/>
+                <ref bean="documentApiServer"/>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="exporter" class="org.springframework.jmx.export.MBeanExporter" lazy-init="false">
+        <property name="beans">
+            <map>
+                <entry key="bean:name=statisticBean" value-ref="statisticBean"/>
+            </map>
+        </property>
+    </bean>
+
 </beans>
