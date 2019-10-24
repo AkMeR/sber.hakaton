@@ -2,7 +2,9 @@ package com.sbt.rnd.meetup2017.transport.impl.jmx;
 
 import com.sbt.rnd.meetup2017.transport.impl.server.Server;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Statistic implements StatisticMBean {
     private List<Server> servers;
@@ -12,15 +14,14 @@ public class Statistic implements StatisticMBean {
     }
 
     @Override
-    public int getPoolSize() {
-        System.out.println("HeartbeatMBeanImpl getPoolSize()");
-        int res = 0;
+    public Map<String, Integer> getPoolSize() {
+        Map<String, Integer> hashMap = new HashMap<>(servers.size());
         for(Server server : servers)
         {
-            res += server.getServerState().getFreeThreadCount();
+            hashMap.put(server.getServerState().getApiName(), server.getServerState().getFreeThreadCount());
         }
-        System.out.println("HeartbeatMBeanImpl getPoolSize()");
-        return res;
+        System.out.println("HeartbeatMBeanImpl getPoolSize for all api: "+hashMap);
+        return hashMap;
     }
 
     @Override
@@ -30,7 +31,6 @@ public class Statistic implements StatisticMBean {
         for(Server server : servers)
         {
             if (apiName.equals(server.getServerState().getApiName())) {
-
                 int freeThreadCount = server.getServerState().getFreeThreadCount();
                 System.out.println(server.getServerState().getApiName() +" free thread count:"+ freeThreadCount);
                 return freeThreadCount;
