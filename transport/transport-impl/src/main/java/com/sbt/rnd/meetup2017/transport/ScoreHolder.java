@@ -40,7 +40,8 @@ public class ScoreHolder {
         return weights
                 .map(e -> new AbstractMap.SimpleEntry<>(e.getKey(), -Math.log(random.nextLong()) / e.getValue().get()))
                 .min(Comparator.comparing(AbstractMap.SimpleEntry::getValue))
-                .orElseThrow(IllegalArgumentException::new).getKey();
+                .map(AbstractMap.SimpleEntry::getKey)
+                .orElse(null);
     }
 
 }
