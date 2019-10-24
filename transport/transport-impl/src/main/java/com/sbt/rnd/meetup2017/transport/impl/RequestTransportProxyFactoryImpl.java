@@ -1,5 +1,6 @@
 package com.sbt.rnd.meetup2017.transport.impl;
 
+import com.sbt.rnd.meetup2017.transport.ScoreHolder;
 import com.sbt.rnd.meetup2017.transport.api.ApiClass;
 import com.sbt.rnd.meetup2017.transport.api.RequestTransportProxyFactory;
 import com.sbt.rnd.meetup2017.transport.impl.client.RequestInterceptor;
@@ -24,6 +25,8 @@ public class RequestTransportProxyFactoryImpl implements RequestTransportProxyFa
 
         Rpc rpc = new RpcRequestImpl(clazz.getAnnotation(ApiClass.class).api(), System.getProperty("nodeId"), System.getProperty("moduleId"));
         requestInterceptor.setRpc(rpc);
+
+        ScoreHolder.add(clazz.getAnnotation(ApiClass.class).api().getName());
 
         ProxyFactory proxyFactory = new ProxyFactory(clazz, requestInterceptor);
         //proxyFactory.setAopProxyFactory(new TransportAopProxyFactory());

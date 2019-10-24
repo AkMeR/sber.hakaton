@@ -1,7 +1,11 @@
 package com.sbt.rnd.meetup2017.transport.impl.client;
 
+import com.sbt.rnd.meetup2017.transport.ScoreHolder;
 import com.sbt.rnd.meetup2017.transport.api.RequestRuntimeException;
-import com.sbt.rnd.meetup2017.transport.impl.*;
+import com.sbt.rnd.meetup2017.transport.impl.MessageHandler;
+import com.sbt.rnd.meetup2017.transport.impl.MethodInvocation;
+import com.sbt.rnd.meetup2017.transport.impl.Rpc;
+import com.sbt.rnd.meetup2017.transport.impl.TransportConsumerKafka;
 import com.sbt.rnd.meetup2017.transport.message.Message;
 import com.sbt.rnd.meetup2017.transport.message.MessageProperties;
 import com.sbt.rnd.meetup2017.transport.message.Serializer;
@@ -41,7 +45,7 @@ public class RpcRequestImpl implements Rpc, MessageHandler<ConsumerRecord<String
         properties.setNodeId(nodeId);
         properties.setApiName(apiClass.getName());
         properties.setModuleId(moduleId);
-        properties.setDestination(apiClass.getName());
+        properties.setDestination(ScoreHolder.getNodeId(apiClass.getName()));
 
         MethodInvocation methodInvocation = new MethodInvocation();
         List<Serializable> argList = new ArrayList<>();
