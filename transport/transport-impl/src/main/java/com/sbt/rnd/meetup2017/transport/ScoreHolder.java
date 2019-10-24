@@ -15,6 +15,10 @@ public class ScoreHolder {
         ConcurrentHashMap<String, AtomicLong> score = ScoreHolder.getScore(apiName);
         String nodeId = getWeightedRandom(score.entrySet().stream(), new Random());
 
+        if (nodeId == null) {
+            return apiName;
+        }
+
         score.get(nodeId).addAndGet(-1L);//TODO
 
         return nodeId;
