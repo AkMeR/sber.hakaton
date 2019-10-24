@@ -1,15 +1,24 @@
 package com.sbt.rnd.meetup2017.transport;
 
-import java.util.AbstractMap;
-import java.util.Comparator;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
 public class ScoreHolder {
     private static final ConcurrentHashMap<String, ConcurrentHashMap<String, AtomicLong>> SCORE = new ConcurrentHashMap<>();
+
+    public static Set<String> getApis() {
+        return SCORE.keySet();
+    }
+
+    public static void update(String apiName, Map<String, Long> score) {
+        ConcurrentHashMap<String, AtomicLong> newScore = new ConcurrentHashMap<>();
+        for (Map.Entry<String, Long> scoreEntry : score.entrySet()) {
+            newScore.put(scoreEntry.getKey(), new AtomicLong(scoreEntry.getValue()));
+        }
+        SCORE.put(apiName, newScore);
+    }
 
     public static String getNodeId(String apiName) {
         ConcurrentHashMap<String, AtomicLong> score = ScoreHolder.getScore(apiName);
