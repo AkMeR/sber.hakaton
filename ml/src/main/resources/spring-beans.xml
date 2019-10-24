@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns="http://www.springframework.org/schema/beans" xmlns:task="http://www.springframework.org/schema/task"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                      http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+                      http://www.springframework.org/schema/context
+                      http://www.springframework.org/schema/context/spring-context.xsd
+                      http://www.springframework.org/schema/aop
+                      http://www.springframework.org/schema/aop/spring-aop-4.2.xsd
+                      http://www.springframework.org/schema/tx
+                      http://www.springframework.org/schema/tx/spring-tx-4.2.xsd http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
+
+    <context:component-scan base-package="com.sbt.rnd"></context:component-scan>
+
+    <aop:aspectj-autoproxy/>
+    <tx:annotation-driven proxy-target-class="true" mode="aspectj"/>
+    <!--    <context:property-placeholder location="module.properties" />-->
+
+    <task:scheduler id="myScheduler" pool-size="10"/>
+    <task:scheduled-tasks scheduler="myScheduler">
+        <task:scheduled ref="nodePollTask" method="getServerStats" fixed-rate="5000"/>
+        <task:scheduled ref="computeScoreTask" method="run" fixed-rate="5000"/>
+    </task:scheduled-tasks>
+</beans>

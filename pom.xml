@@ -15,6 +15,7 @@
         <module>api</module>
         <module>request</module>
         <module>module</module>
+        <module>ml</module>
     </modules>
 
     <properties>

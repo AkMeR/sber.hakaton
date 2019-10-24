@@ -24,6 +24,7 @@ public class TransportListener {
     public <T> void start(MessageHandler<T> msgHandler) {
 
         ExecutorService executor = Executors.newFixedThreadPool(numConsumers);
+
         final List<TransportConsumerKafka> transportConsumers = new ArrayList<>();
 
         for (int i = 0; i < numConsumers; i++) {
