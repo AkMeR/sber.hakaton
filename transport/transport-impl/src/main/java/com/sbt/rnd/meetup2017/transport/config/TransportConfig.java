@@ -5,8 +5,10 @@ import com.sbt.rnd.meetup2017.transport.impl.RequestTransportProxyFactoryImpl;
 import com.sbt.rnd.meetup2017.transport.schedul.ScoreScheduler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @Configuration
+@EnableScheduling
 public class TransportConfig {
 
     @Bean

@@ -6,6 +6,13 @@ public class NodeApiScore {
     private double score;
     private double delta;
 
+    public NodeApiScore(String nodeId, String apiName, double score, double delta) {
+        this.nodeId = nodeId;
+        this.apiName = apiName;
+        this.score = score;
+        this.delta = delta;
+    }
+
     public String getNodeId() {
         return nodeId;
     }
